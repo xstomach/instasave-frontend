@@ -2,98 +2,42 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Instave - Instagram İndirici</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Instave - Instagram Video/Fotoğraf İndirici</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 40px; background:#f5f5f5; }
+    .container { max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 10px; }
+    input[type=text] { width: 100%; padding: 10px; font-size: 16px; margin-bottom: 15px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    #result { margin-top: 20px; display: none; }
+    #result a { display: inline-block; padding: 10px; background: #4CAF50; color: white; border-radius: 5px; text-decoration: none; }
+  </style>
 </head>
-<body class="bg-gray-100 font-sans">
-  <div class="max-w-xl mx-auto mt-20 p-6 bg-white shadow-xl rounded-2xl">
-    <div class="flex justify-end mb-2">
-      <select id="langSelect" class="border p-2 rounded" onchange="changeLanguage(this.value)">
-        <option value="tr">Türkçe</option>
-        <option value="en">English</option>
-        <option value="de">Deutsch</option>
-      </select>
-    </div>
-    <h1 class="text-2xl font-bold text-center mb-4">Instagram Foto/Video/Reels İndirici</h1>
-    <p class="text-sm text-gray-600 text-center mb-6">İndirmek istediğiniz Instagram bağlantısını aşağıya yapıştırın:</p>
+<body>
+  <div class="container">
+    <h2>Instave - Instagram Video/Fotoğraf İndirici</h2>
+    <input type="text" id="instaLink" placeholder="Instagram linkini buraya yapıştır" />
+    <button onclick="downloadMedia()">İndir</button>
 
-    <input type="text" id="instaLink" class="w-full p-3 border rounded-md mb-4" placeholder="https://www.instagram.com/..." data-error="Lütfen geçerli bir Instagram bağlantısı girin.">
-    <button onclick="downloadMedia()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">İndir</button>
-
-    <div id="result" class="mt-6 hidden">
-      <p class="text-green-600 font-semibold mb-2">İndirme bağlantısı hazır:</p>
-      <a href="#" id="downloadLink" target="_blank" class="text-blue-500 underline">Dosyayı indir</a>
+    <div id="result">
+      <p>İndirilebilir Link:</p>
+      <a id="downloadLink" href="#" target="_blank" rel="noopener">Medya Dosyasını İndir</a>
     </div>
   </div>
 
   <script>
-    const translations = {
-      tr: {
-        title: "Instagram Foto/Video/Reels İndirici",
-        instruction: "İndirmek istediğiniz Instagram bağlantısını aşağıya yapıştırın:",
-        placeholder: "https://www.instagram.com/...",
-        button: "İndir",
-        success: "İndirme bağlantısı hazır:",
-        download: "Dosyayı indir",
-        error: "Lütfen geçerli bir Instagram bağlantısı girin."
-      },
-      en: {
-        title: "Instagram Photo/Video/Reels Downloader",
-        instruction: "Paste the Instagram link you want to download below:",
-        placeholder: "https://www.instagram.com/...",
-        button: "Download",
-        success: "Download link is ready:",
-        download: "Download file",
-        error: "Please enter a valid Instagram link."
-      },
-      de: {
-        title: "Instagram Foto/Video/Reels Downloader",
-        instruction: "Füge den Instagram-Link ein, den du herunterladen möchtest:",
-        placeholder: "https://www.instagram.com/...",
-        button: "Herunterladen",
-        success: "Download-Link ist bereit:",
-        download: "Datei herunterladen",
-        error: "Bitte gib einen gültigen Instagram-Link ein."
-      }
-    };
-
-    function changeLanguage(lang) {
-      const t = translations[lang];
-      document.querySelector("h1").innerText = t.title;
-      document.querySelector("p").innerText = t.instruction;
-      document.getElementById("instaLink").placeholder = t.placeholder;
-      document.querySelector("button").innerText = t.button;
-      document.querySelector("#result p").innerText = t.success;
-      document.getElementById("downloadLink").innerText = t.download;
-      document.getElementById("instaLink").dataset.error = t.error;
-    }
-
-    window.onload = () => {
-      const userLang = navigator.language || navigator.userLanguage;
-      const langCode = userLang.split('-')[0];
-      if (translations[langCode]) {
-        changeLanguage(langCode);
-        document.getElementById("langSelect").value = langCode;
-      } else {
-        changeLanguage("tr");
-        document.getElementById("langSelect").value = "tr";
-      }
-    };
-
     async function downloadMedia() {
       const link = document.getElementById('instaLink').value.trim();
-      const errorMsg = document.getElementById("instaLink").dataset.error;
-      const resultBox = document.getElementById('result');
-      const downloadLink = document.getElementById('downloadLink');
-
       if (!link || !link.includes('instagram.com')) {
-        alert(errorMsg);
+        alert("Lütfen geçerli Instagram linki girin.");
         return;
       }
 
+      const resultBox = document.getElementById('result');
+      const downloadLink = document.getElementById('downloadLink');
+
       try {
-        const res = await fetch('https://instasave-backend-2.onrender.com', {
+        const res = await fetch('https://instasave-backend-2.onrender.com/api/download', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({url: link})
@@ -103,16 +47,16 @@
 
         if (data.error) {
           alert(data.error);
-          resultBox.classList.add('hidden');
+          resultBox.style.display = "none";
           return;
         }
 
         downloadLink.href = data.media_url;
-        resultBox.classList.remove('hidden');
+        resultBox.style.display = "block";
 
       } catch (err) {
         alert("Bir hata oluştu, tekrar deneyin.");
-        resultBox.classList.add('hidden');
+        resultBox.style.display = "none";
       }
     }
   </script>
